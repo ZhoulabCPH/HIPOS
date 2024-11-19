@@ -10,7 +10,7 @@ In this study, we perform a comprehensive deep learning-based histomorphological
 #### Hardware Requirements
 
 ```
-Device 0 name: NVIDIA GeForce RTX 4080 Laptop GPU
+NVIDIA GeForce RTX 4080 Laptop GPU
 ```
 
 #### OS Requirements
