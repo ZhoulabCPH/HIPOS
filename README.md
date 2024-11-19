@@ -66,8 +66,6 @@ The installation is estimated to take 1 hour, depending on the network environme
 python ./data/H&E Tile Segmentation with watershed.py 
 ```
 #### 1. Contrastive learning-based self-supervised clustering
-
-
 In the file `CC_Model.py `, we provide an example of how to extract features
 from each tile, given their coordinates, using a ResNet50 pre-trained on the ImageNet dataset.
 The code to train such a model is available here: https://github.com/topics/resnet50.
@@ -80,8 +78,8 @@ This code takes two CSV files as input: `Patch_Feature.csv`, which contains the 
 python ./code/1_deeplearning_contrastive_cluster/Histomorphological_Feature.py 
 ```
 #### 3.GMM Cluster to HIPO
-1.The purpose of the `Patient_Level.py` is to aggregate patch-level cluster information into patient-level features by grouping patches based on patient identifiers and calculating the proportion of patches assigned to each HIPO type. This enables the generation of patient-level representations that can be used for further analysis, such as patient stratification or predictive modeling.
-2.The `GMM.R` aims to identify the optimal number of clusters in the similarity matrix using a model-based clustering approach (Mclust). It then classifies the matrix into clusters and reorders it for clear visualization, facilitating the exploration of patterns and relationships between the clustered entities. This process helps in deriving meaningful groupings and patterns for downstream analyses, such as feature extraction or classification.
+  1.The purpose of the `Patient_Level.py` is to aggregate patch-level cluster information into patient-level features by grouping patches based on patient identifiers and calculating the proportion of patches assigned to each HIPO type. This enables the generation of patient-level representations that can be used for further analysis, such as patient stratification or predictive modeling.
+  2.The `GMM.R` aims to identify the optimal number of clusters in the similarity matrix using a model-based clustering approach (Mclust). It then classifies the matrix into clusters and reorders it for clear visualization, facilitating the exploration of patterns and relationships between the clustered entities. This process helps in deriving meaningful groupings and patterns for downstream analyses, such as feature extraction or classification.
 ```
 python ./code/1_deeplearning_contrastive_cluster/Histomorphological_Feature.py
 R ./code/1_deeplearning_contrastive_cluster/Histomorphological_Feature.py
@@ -94,7 +92,7 @@ python ./code/1_deeplearning_contrastive_cluster/Histomorphological_Feature.py
 R ./code/1_deeplearning_contrastive_cluster/Histomorphological_Feature.py
 ```
 
-#### 4.GMM Cluster to HIPO
+#### 5.DeepDHP
 The DeepDHP architecture featured two autoencoders:
   1.A global autoencoder to extract overall tissue characteristics.
   2.A local autoencoder with an attention mechanism to focus on critical features.
