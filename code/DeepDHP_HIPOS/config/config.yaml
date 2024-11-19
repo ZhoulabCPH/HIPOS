@@ -1,0 +1,36 @@
+## Hyperparameters
+seed: 2023
+start_lr: 5e-4
+Tile_num: 2000
+input_dim: 15
+encoding_dim: 15
+batch_size: 16
+start_epoch: 0
+Epoch: 800
+
+
+initial_checkpoint: '../../Model_Pretrained/DeepDHP_HIPOS.pth'
+
+#Datasets Path
+External: "Log/Result/StandardScalerDatasets/External_std.csv"
+
+
+Cluster_num: 50
+Instance_num: 2048
+Feature_dim: 128
+SwinTransform: 768
+workers: 0
+
+# loss options
+weight_decay: 0.01
+instance_temperature: 0.5
+cluster_temperature: 1.0
+lambd: 0.001
+alpha: 0.005
+
+#2. Model
+
+Model_Out: "Result/"
+
+
+
