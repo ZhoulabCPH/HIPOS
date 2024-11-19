@@ -3,7 +3,7 @@
 ## Abstract
 In this study, we perform a comprehensive deep learning-based histomorphological image phenotyping of SCLC patients from multi-center cohorts. Deep representation learning analysis of tissue images constructs an atlas of histomorphological phenotypes (HIPO) and reveals two robust HIPO-based SCLC subtypes correlating with distinct survival outcomes independent of molecular subtyping and clinical features. A clinically applicable image-based histomorphological phenotyping stratification system (HIPOS) was proposed to evaluate the imaging intratumor ecosystem heterogeneity and improve risk stratification in the discovery cohort of 348 patients, and validated in three independent cohorts of 94, 67 and 109 from other medical centers. The HIPOS consistently showed independent prognostic performance in predicting overall survival and disease-free survival outcomes and contributed extra prognostic significance beyond tumor–node–metastasis stage and molecular subtypes.
 
-!["DL-CC"](./assets/DLCC.png)
+!["DL-CC"](./assets/Deep.png)
 
 ## System requirements
 
