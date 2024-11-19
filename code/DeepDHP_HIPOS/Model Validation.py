@@ -1,63 +1,85 @@
 import pandas as pd
 import numpy as np
-from dataset import *
+import torch
 import torch.optim
-import warnings
-warnings.filterwarnings('ignore')
-from models import model
 import torch.cuda.amp as amp
 import argparse
-from utils import yaml_config_hook, save_model
+import warnings
 from sklearn.preprocessing import StandardScaler
-std=StandardScaler()
+from dataset import *
+from models import model
+from utils import yaml_config_hook, save_model
 
-def Clincial_Name(Clinical_Data):
-    Clincial_Name=Clinical_Data["编码"].values
-    Clincial_name_List=[]
-    for name in Clincial_Name:
-        Clincial_name_List.append(name.split('-')[1]+'-'+name.split('-')[2])
-    return np.array(Clincial_name_List)
-def Get_Pre_Model(Value,Datasets,net_):
-    Test_Batch = {}
-    Test_Batch['image'] = Value
-    Test_Batch['name'] = Datasets.values[:, 0]
-    net_.eval()
-    net_.output_type = ['inference']
+# Suppress warnings
+warnings.filterwarnings('ignore')
+
+# Initialize standard scaler
+std = StandardScaler()
+
+############################################################
+# Utility Functions
+############################################################
+def preprocess_clinical_names(clinical_data):
+    """
+    Preprocess clinical names to extract meaningful information.
+    """
+    clinical_names = clinical_data["编码"].values
+    processed_names = [name.split('-')[1] + '-' + name.split('-')[2] for name in clinical_names]
+    return np.array(processed_names)
+
+def get_predictions(values, datasets, net):
+    """
+    Perform inference using the model and return predictions.
+    """
+    test_batch = {
+        'image': values,
+        'name': datasets.values[:, 0]
+    }
+    net.eval()
+    net.output_type = ['inference']
+    
     with torch.no_grad():
-        output = net_(Test_Batch)
-    predict_test = output['Predict'].cpu().detach().numpy()
-    predict_Score=output['Predict_score'].cpu().detach().numpy()[:,1]
-    Datasets['Label'] = predict_test
-    Datasets['predict_Score']=predict_Score
-    return Datasets
+        output = net(test_batch)
+    
+    predicted_labels = output['Predict'].cpu().detach().numpy()
+    prediction_scores = output['Predict_score'].cpu().detach().numpy()[:, 1]
 
+    datasets['Label'] = predicted_labels
+    datasets['predict_Score'] = prediction_scores
+    return datasets
+
+############################################################
+# Main Execution
+############################################################
 if __name__ == '__main__':
+    # Argument parsing
     parser = argparse.ArgumentParser()
     config = yaml_config_hook("./config/config.yaml")
-    for k, v in config.items():
-        parser.add_argument(f"--{k}", default=v, type=type(v))
+    for key, value in config.items():
+        parser.add_argument(f"--{key}", default=value, type=type(value))
     args = parser.parse_args()
 
-    out_dir = args.Model_Out
-    initial_checkpoint = args.initial_checkpoint
-    start_lr = float(args.start_lr)
-    batch_size = int(args.batch_size)
-
+    # Model setup
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    scaler = amp.GradScaler(enabled=is_amp)
     net = model.Net(arg=args).to(device)
-    if initial_checkpoint != 'None':
-        f = torch.load(initial_checkpoint, map_location=lambda storage, loc: storage)
-        start_epoch = f['epoch']
-        state_dict = f['state_dict']
-        net.load_state_dict(state_dict, strict=False)  # True
+
+    if args.initial_checkpoint != 'None':
+        print(f"Loading checkpoint: {args.initial_checkpoint}")
+        checkpoint = torch.load(args.initial_checkpoint, map_location=device)
+        net.load_state_dict(checkpoint['state_dict'], strict=False)
+        start_epoch = checkpoint.get('epoch', 0)
     else:
-        start_iteration = 0
         start_epoch = 0
 
-    ##外部队列
-    External = pd.read_csv(args.External)
-    External_Value = torch.from_numpy(np.array(External.values[:, 1:16], dtype=np.float32)).cuda()
-    Pre_External = Get_Pre_Model(External_Value, External, net)
-    Pre_External.to_csv("Log/xx.csv")
+    # External dataset inference
+    print("Loading external dataset...")
+    external_dataset = pd.read_csv(args.External)
+    external_values = torch.from_numpy(np.array(external_dataset.values[:, 1:16], dtype=np.float32)).to(device)
 
+    print("Performing inference...")
+    predicted_external = get_predictions(external_values, external_dataset, net)
+
+    # Save predictions
+    output_path = "Log/xx.csv"
+    predicted_external.to_csv(output_path, index=False)
+    print(f"Predictions saved to {output_path}")
