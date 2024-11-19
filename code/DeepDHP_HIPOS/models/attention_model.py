@@ -1,86 +1,113 @@
-is_amp = True
+import torch
+import torch.nn as nn
 import warnings
+from dataset import *  # Assuming this contains necessary dataset utilities
+
+# Suppress warnings
 warnings.filterwarnings('ignore')
-from dataset import *
-# 定义自编码器模型
+
 class Net(nn.Module):
-    def load_pretrain(self, ):
-        print('loading %s ...' % self.arg.Model_Pretrained_Res)
-        checkpoint = torch.load(self.arg.Model_Pretrained_Res, map_location=lambda storage, loc: storage)
-        print(self.res.load_state_dict(checkpoint, strict=False))  # True
+    """
+    Autoencoder with Attention Mechanism and Dual Encoders.
+    """
     def __init__(self, arg):
         super(Net, self).__init__()
-        self.input_dim=arg.input_dim
+        self.arg = arg
+        self.input_dim = arg.input_dim
         self.encoding_dim = arg.encoding_dim
-        # 定义注意力层
+
+        # Attention layer
         self.attention = nn.Sequential(
             nn.Linear(self.input_dim, 1),
-            nn.Tanh()##20231107修改
+            nn.Tanh()  # Modified as per requirements
         )
 
-        # 定义编码器
-        self.encoder1 = nn.Sequential(
-            nn.Linear(self.input_dim, self.input_dim),
-            nn.BatchNorm1d(self.input_dim),
-            nn.ReLU(),
-            nn.Linear(self.input_dim, self.input_dim//2),
-            nn.BatchNorm1d(self.input_dim//2),
-            nn.ReLU(),
-            nn.Linear(self.input_dim//2, self.input_dim),
-            nn.BatchNorm1d(self.input_dim),
-            nn.ReLU()
-        )
-        self.encoder2 = nn.Sequential(
-            nn.Linear(self.input_dim, self.input_dim),
-            nn.BatchNorm1d(self.input_dim),
-            nn.ReLU(),
-            nn.Linear(self.input_dim, self.input_dim//2),
-            nn.BatchNorm1d(self.input_dim//2),
-            nn.ReLU(),
-            nn.Linear(self.input_dim//2, self.input_dim),
-            nn.BatchNorm1d(self.input_dim),
-            nn.ReLU()
-        )
-        # 定义Laten层
+        # Encoder 1
+        self.encoder1 = self._build_encoder()
 
-        # 定义解码器
+        # Encoder 2
+        self.encoder2 = self._build_encoder()
+
+        # Decoder
         self.decoder = nn.Sequential(
             nn.Linear(self.input_dim * 2, self.input_dim),
             nn.BatchNorm1d(self.input_dim),
             nn.ReLU(),
-            nn.Linear(self.input_dim, self.input_dim//4),
-            nn.BatchNorm1d(self.input_dim//4),
+            nn.Linear(self.input_dim, self.input_dim // 4),
+            nn.BatchNorm1d(self.input_dim // 4),
             nn.ReLU(),
-            nn.Linear(self.input_dim//4, 2),
+            nn.Linear(self.input_dim // 4, 2),
             nn.Softmax(dim=1)
         )
+
+        # Loss functions
+        self.cross_entropy_loss = nn.CrossEntropyLoss()
+        self.mse_loss = nn.MSELoss()
+
+    def _build_encoder(self):
+        """
+        Constructs an encoder block.
+        """
+        return nn.Sequential(
+            nn.Linear(self.input_dim, self.input_dim),
+            nn.BatchNorm1d(self.input_dim),
+            nn.ReLU(),
+            nn.Linear(self.input_dim, self.input_dim // 2),
+            nn.BatchNorm1d(self.input_dim // 2),
+            nn.ReLU(),
+            nn.Linear(self.input_dim // 2, self.input_dim),
+            nn.BatchNorm1d(self.input_dim),
+            nn.ReLU()
+        )
+
+    def load_pretrain(self):
+        """
+        Loads pre-trained weights for the ResNet model.
+        """
+        print(f'Loading pretrained model from {self.arg.Model_Pretrained_Res}...')
+        checkpoint = torch.load(self.arg.Model_Pretrained_Res, map_location=lambda storage, loc: storage)
+        print(self.res.load_state_dict(checkpoint, strict=False))  # Strict is False to allow partial loading.
+
     def forward(self, batch):
-        # x=batch['image']
-        x = batch
-        # 计算注意力得分
+        """
+        Forward pass for the model.
+
+        :param batch: A dictionary containing input data and labels.
+        :return: Output dictionary containing loss or predictions based on `output_type`.
+        """
+        x = batch['input']
+        labels = batch.get('label', None)
+
+        # Attention scores and weighted input
         attention_scores = self.attention(x)
-        # 使用注意力加权输入数据
         x_attention = x * attention_scores
+
+        # Encoding
         encoded1 = self.encoder1(x_attention)
         encoded2 = self.encoder2(x)
-
         encoded = torch.cat((encoded1, encoded2), dim=1)
 
-        # 编码器过程
+        # Decoding
         decoded = self.decoder(encoded)
-        # 定义交叉熵损失函数
-        loss_function = nn.CrossEntropyLoss()
-        MSE=nn.MSELoss()
-        output={}
+
+        # Output dictionary
+        output = {}
+
         if 'loss' in self.output_type:
-            a=1
-            output['MSELoss'] = MSE(encoded1, encoded2)
-            output["loss_function"]=loss_function(decoded,batch['label'])
+            # Loss calculations
+            mse_loss = self.mse_loss(encoded1, encoded2)
+            output['MSELoss'] = mse_loss
+
+            if labels is not None:
+                ce_loss = self.cross_entropy_loss(decoded, labels)
+                output['loss'] = ce_loss + mse_loss  # Combined loss
+            else:
+                output['loss'] = mse_loss  # Fallback if no labels are provided
+
         if 'inference' in self.output_type:
-            # output=decoded
-            output['Predict'] =torch.argmax(decoded,1)
-            output['Predict_score']=decoded
-            output['attention_scores']=attention_scores
+            # Predictions and scores
+            output['Predict'] = torch.argmax(decoded, dim=1)
+            output['Predict_score'] = decoded
+            output['attention_scores'] = attention_scores
+
         return output
-
-
