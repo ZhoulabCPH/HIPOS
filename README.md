@@ -58,10 +58,10 @@ The installation is estimated to take 1 hour, depending on the network environme
 ## Predictive models training
 
 #### H&E Tile Segmentation with Watershed
-  1.Convert the SVS file to PNG format.
-  2.WSIs were segmented into 224x224-pixel tiles at 5x resolution.
-  3.Artifacts were filtered using Otsu's thresholding, retaining tiles with ≥60% tissue coverage.
-  4.Stain normalization was performed with Reinhard's method.
+ Convert the SVS file to PNG format.
+ WSIs were segmented into 224x224-pixel tiles at 5x resolution.
+ Artifacts were filtered using Otsu's thresholding, retaining tiles with ≥60% tissue coverage.
+ Stain normalization was performed with Reinhard's method.
 ```
 python ./data/H&E Tile Segmentation with watershed.py 
 ```
