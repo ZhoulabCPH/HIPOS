@@ -1,1 +1,31 @@
+seed: 2023
+start_lr: 5e-4
+batch_size: 32
+start_epoch: 0
+Epoch: 100
+Cluster_num: 64
+Instance_num: 2048
+Feature_dim: 128
+SwinTransform: 768
+workers: 0
+
+initial_checkpoint: '../../Model_Pretrained/ContrastiveClustering.pth'
+weight_decay: 0.
+instance_temperature: 0.5
+cluster_temperature: 1.0
+lambd: 0.001
+alpha: 0.005
+
+##Datasets Path
+H5DTrain_Image: "xx"
+Train_Patient: "xx"
+
+H5DTest_Image: "xx"
+Test_Patient: "xx"
+
+#2. Model
+Model_Pretrained_Res: "../../Model_Pretrained/resnet50.pth"
+Model_Out: "Result/"
+
+
 
