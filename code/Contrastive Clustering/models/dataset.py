@@ -65,7 +65,7 @@ class Transform:
             GaussianBlur(p=0.4),
             Solarization(p=0.01),
             transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+            transforms.Normalize(mean=[0.688, 0.521, 0.681], std=[0.150, 0.204, 0.188])
         ])
         self.transform_prime = transforms.Compose([
             transforms.RandomRotation(degrees=90, fill=255),
@@ -75,7 +75,7 @@ class Transform:
             GaussianBlur(p=0.1),
             Solarization(p=0.0),
             transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+            transforms.Normalize(mean=[0.688, 0.521, 0.681], std=[0.150, 0.204, 0.188])
         ])
 
     def __call__(self, x):
@@ -91,7 +91,7 @@ class Transform_:
         self.transform = transforms.Compose([
             transforms.Resize(224),
             transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+            transforms.Normalize(mean=[0.688, 0.521, 0.681], std=[0.150, 0.204, 0.188])
         ])
 
     def __call__(self, x):
